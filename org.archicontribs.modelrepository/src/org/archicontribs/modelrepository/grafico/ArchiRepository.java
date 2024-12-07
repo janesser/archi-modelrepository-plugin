@@ -31,6 +31,7 @@ import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.InitCommand;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
@@ -217,14 +218,21 @@ public class ArchiRepository implements IArchiRepository {
         }
     }
     
+    boolean gitShellMode = true;
+    
     @Override
     public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
-            PullCommand pullCommand = git.pull();
-            pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
-            pullCommand.setRebase(false); // Merge, not rebase
-            pullCommand.setProgressMonitor(monitor);
-            return pullCommand.call();
+            if (gitShellMode) {
+            	Runtime.getRuntime().exec("git -version");
+            	return null;
+            } else {
+	        	PullCommand pullCommand = git.pull();
+	            pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
+	            pullCommand.setRebase(false); // Merge, not rebase
+	            pullCommand.setProgressMonitor(monitor);
+	            return pullCommand.call();
+            }
         }
     }
     
